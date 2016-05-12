@@ -1,10 +1,24 @@
-- name: Docker Group is Present
+- name: jenkins-docker | Docker Group is Present
   group:
     name: docker
     state: present
 
-- name: Add jenkins user to docker group
+- name: jenkins-docker | Add jenkins user to docker group
   user:
     name: jenkins
     group: docker
     append: yes
+
+- name: jenkins-docker | Create cloud configuration XML
+  template: src=docker-cloud-config.xml.j2 dest=/tmp/docker-cloud-config.xml
+
+- name: jenkins-docker | Add docker cloud to Jenkins configuration
+  xml:
+    file: {{ jenkins_docker_config_xml_file }}
+    xpath: /hudson
+    add_children: {{ lookup('file', '/tmp/docker-cloud-config.xml') }}
+
+- name: jenkins-docker | Ensure Jenkins restarted if needed
+  service:
+    name: jenkins
+    state: restarted
