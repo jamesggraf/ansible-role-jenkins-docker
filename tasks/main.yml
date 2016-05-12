@@ -14,9 +14,9 @@
 
 - name: jenkins-docker | Add docker cloud to Jenkins configuration
   xml:
-    file: {{ jenkins_docker_config_xml_file }}
+    file: "{{ jenkins_docker_config_xml_file }}"
     xpath: /hudson
-    add_children: {{ lookup('file', '/tmp/docker-cloud-config.xml') }}
+    add_children: "{{ lookup('file', '/tmp/docker-cloud-config.xml') }}"
 
 - name: jenkins-docker | Ensure Jenkins restarted if needed
   service:
