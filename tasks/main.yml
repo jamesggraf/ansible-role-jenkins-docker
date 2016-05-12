@@ -9,6 +9,11 @@
     group: docker
     append: yes
 
+- name: jenkins-docker | Install python-lxml
+  apt:
+    name: python-lxml
+    state: present
+
 - name: jenkins-docker | Create cloud configuration XML
   template: src=docker-cloud-config.xml.j2 dest=/tmp/docker-cloud-config.xml
 
