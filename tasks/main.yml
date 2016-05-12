@@ -1,0 +1,10 @@
+- name: Docker Group is Present
+  group:
+    name: docker
+    state: present
+
+- name: Add jenkins user to docker group
+  user:
+    name: jenkins
+    group: docker
+    append: yes
