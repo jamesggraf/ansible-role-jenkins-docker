@@ -1,3 +1,4 @@
+# Setup 'docker' user group
 - name: jenkins-docker | Docker Group is Present
   group:
     name: docker
@@ -9,19 +10,44 @@
     group: docker
     append: yes
 
+# Update Jenkins' config.xml
+- name: jenkins-docker | Check for config.xml
+  stat:
+    path: "{{ jenkins_docker_config_xml_file }}"
+  register: config_xml
+
+- name: jenkins-docker | Create cloud configuration XML
+  template:
+    src: docker-cloud-config.xml.j2
+    dest: /tmp/docker-cloud-config.xml
+
+## If config.xml exists
 - name: jenkins-docker | Install python-lxml
   apt:
     name: python-lxml
     state: present
-
-- name: jenkins-docker | Create cloud configuration XML
-  template: src=docker-cloud-config.xml.j2 dest=/tmp/docker-cloud-config.xml
+  when: config_xml.stat.exists
 
 - name: jenkins-docker | Add docker cloud to Jenkins configuration
   xml:
     file: "{{ jenkins_docker_config_xml_file }}"
     xpath: /hudson
     add_children: "{{ lookup('file', '/tmp/docker-cloud-config.xml') }}"
+  when: config_xml.stat.exists
+
+## Else if config.xml does not exist
+- name: jenkins-docker | Read cloud template into variable
+  set_fact:
+    jenkins_docker_config_xml_cloud_content: "{{ lookup('file', '/tmp/docker-cloud-config.xml') }}"
+  when: not config_xml.stat.exists
+
+- name: jenkins-docker | Create config.xml
+  template: 
+    src: config.xml.j2
+    dest: "{{ jenkins_docker_config_xml_file }}"
+  when: not config_xml.stat.exists
+
+## end if
 
 - name: jenkins-docker | Ensure Jenkins restarted if needed
   service:
